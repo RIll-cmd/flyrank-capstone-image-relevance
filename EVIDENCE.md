@@ -8,4 +8,4 @@
 - Review endpoints: exercised with simulated embeddings and classification.
 - Top-1 precision on 10 manually labeled posts at similarity 0.72 and confidence 0.75: **2/10 (0.20)**, counting refusals as misses. Four red-fox cases were refused because the detected subjects were insufficiently specific. This is below the intended quality bar; thresholds are not validated for negative matches. Lowering the similarity threshold to 0.45 changed this same small set to 3/10 but increased accepted candidates without a negative-set safety evaluation, so it was not adopted.
 - A `qwen3-vl:2b-instruct` trial correctly identified two sampled red foxes after a prompt refinement, but one resized image took 85.5 seconds on this CPU. A complete second-model run was not finished and no Qwen precision score is claimed. The full Moondream database was restored; the partial Qwen database is retained locally for follow-up.
-- Public dedicated repository, commit history, license audit, and submission: outstanding.
+- The dedicated repository began locally rather than publicly from day one. Individual license review and submission remain outstanding.
