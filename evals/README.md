@@ -1,0 +1,1 @@
+Run `python seed.py` against a running API with the embedding model available. It writes `labels.json` with database IDs for ten visually inspected gold images. Process the corpus before running `python evaluate.py`. The exact-image metric counts refusals as misses. No measured score is asserted until this has been run against real model output.
