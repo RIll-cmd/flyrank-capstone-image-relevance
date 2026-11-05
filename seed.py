@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import requests
+from PIL import Image
 
 base=os.getenv('BASE_URL','http://127.0.0.1:8000').rstrip('/')
 root=Path(__file__).parent
@@ -16,6 +17,10 @@ def post(path,data):
 ids=[]
 for item in corpus:
     ids.append(post('/images',{'path':item['path'],'source':item['source'],'license':item['license']})['id'])
+
+# A deliberately blank image checks that a model cannot make a confident recommendation from no visual information.
+Image.new('RGB',(128,128),'white').save(root/'images'/'low-information.png')
+post('/images',{'path':'low-information.png','source':'synthetic blank image made for this test','license':'CC0'})
 
 # Gold labels refer to visually inspected image positions in contact-sheet.jpg.
 cases=[
@@ -35,4 +40,4 @@ for title,content,subject,index in cases:
     result=post('/posts',{'title':title,'content':content,'expected_subject':subject})
     labels.append({'post_id':result['id'],'expected_image_id':ids[index],'title':title})
 (root/'evals'/'labels.json').write_text(json.dumps(labels,indent=2),encoding='utf8')
-print(f'Registered {len(ids)} images and {len(labels)} labeled posts. Start POST /jobs to classify images.')
+print(f'Registered {len(ids)} corpus images, one blank quality fixture, and {len(labels)} labeled posts. Start POST /jobs to classify images.')

@@ -89,9 +89,11 @@ def get_job(job_id: str):
 
 @app.post('/posts', status_code=201)
 def add_post(item: PostIn):
-    try: vector = embed(item.title+'\n'+item.content)
-    except Exception as exc: raise HTTPException(503,'Embedding provider unavailable') from exc
     expected = item.expected_subject.strip() or infer_subject(item.title+' '+item.content) or 'unknown'
+    query = item.title+'\n'+item.content
+    if expected != 'unknown' and expected.lower() not in query.lower(): query += '\nCanonical subject: '+expected
+    try: vector = embed(query, kind='query')
+    except Exception as exc: raise HTTPException(503,'Embedding provider unavailable') from exc
     with connect() as db:
         cursor=db.execute('INSERT INTO posts(title,content,expected_subject,embedding) VALUES(?,?,?,?)',(item.title,item.content,expected,json.dumps(vector)))
         return {'id':cursor.lastrowid}

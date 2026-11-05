@@ -10,7 +10,7 @@ def test_batch_match_reject_and_review(tmp_path, monkeypatch):
     def vision(path,job):
         return {'subject':'red fox' if 'fox' in path else 'gray wolf','category':'animal','attributes':[],'caption':'an animal','confidence':0.95}
     monkeypatch.setattr(module,'vision',vision)
-    monkeypatch.setattr(module,'embed',lambda text,job_id=None:[1.0,0.0])
+    monkeypatch.setattr(module,'embed',lambda text,job_id=None,kind='document':[1.0,0.0])
     with TestClient(module.app) as c:
         fox=c.post('/images',json={'path':'fox.jpg','source':'source','license':'test'}).json()['id']
         wolf=c.post('/images',json={'path':'wolf.jpg','source':'source','license':'test'}).json()['id']
@@ -26,3 +26,14 @@ def test_batch_match_reject_and_review(tmp_path, monkeypatch):
         unmatched=c.post('/posts',json={'title':'An unfamiliar animal','content':'An otter in a river','expected_subject':'otter'}).json()['id']
         response=c.get(f'/posts/{unmatched}/images').json()
         assert response['status']=='no confident match' and response['reason']
+
+def test_latin_alias_adds_canonical_subject_to_embedding(tmp_path, monkeypatch):
+    monkeypatch.setenv('DATABASE_PATH',str(tmp_path/'data.db'))
+    calls=[]
+    def embed(text,job_id=None,kind='document'):
+        calls.append((text,kind)); return [1.0,0.0]
+    monkeypatch.setattr(module,'embed',embed)
+    with TestClient(module.app) as c:
+        result=c.post('/posts',json={'title':'Vulpes vulpes','content':'A woodland species.'})
+        assert result.status_code==201
+    assert calls[0][1]=='query' and 'Canonical subject: red fox' in calls[0][0]

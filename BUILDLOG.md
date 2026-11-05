@@ -1,3 +1,5 @@
 # Build log
 
 2026-11-05: AI assistance designed and implemented the local API, model adapters, guard, tests, corpus downloader, evaluation harness and documentation. The first report preview exposed floating-point display artifacts in a separate assignment; those were rounded in SQL. A first vision trial produced repetitive attributes, so the schema and prompt were tightened. A real 40-image Moondream run completed but scored only 2/10 on exact-image retrieval: it described red foxes as generic foxes, which the guard correctly refused. Human review of the code, licenses, model output and threshold selection remains necessary.
+
+Later the same day: enabled the laptop's NVIDIA GPU, ran all 40 images through Qwen, compared three embedding choices, and selected Nomic after the ten-case score improved to 7/10. Added a low-information-image guard and verified a blank fixture is flagged. The same small data set influenced model choice, so the score is not an independent generalization result.
