@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from dotenv import load_dotenv
-from guard import assess, cosine
+from guard import assess, cosine, infer_subject
 from models import ImageIn, PostIn, ReviewIn
 from provider import embed, vision
 from store import connect, initialize
@@ -91,8 +91,9 @@ def get_job(job_id: str):
 def add_post(item: PostIn):
     try: vector = embed(item.title+'\n'+item.content)
     except Exception as exc: raise HTTPException(503,'Embedding provider unavailable') from exc
+    expected = item.expected_subject.strip() or infer_subject(item.title+' '+item.content) or 'unknown'
     with connect() as db:
-        cursor=db.execute('INSERT INTO posts(title,content,expected_subject,embedding) VALUES(?,?,?,?)',(item.title,item.content,item.expected_subject,json.dumps(vector)))
+        cursor=db.execute('INSERT INTO posts(title,content,expected_subject,embedding) VALUES(?,?,?,?)',(item.title,item.content,expected,json.dumps(vector)))
         return {'id':cursor.lastrowid}
 
 def ranking(post_id):
@@ -114,7 +115,8 @@ def ranking(post_id):
 @app.get('/posts/{post_id}/images')
 def suggest(post_id: int):
     results=ranking(post_id); accepted=[r for r in results if r['accepted']]
-    return {'status':'suggestions' if accepted else 'no confident match','suggestions':accepted,'rejected':[r for r in results if not r['accepted']]}
+    reason=None if accepted else ('No processed images are available' if not results else 'All candidates failed the mismatch guard; see rejection reasons')
+    return {'status':'suggestions' if accepted else 'no confident match','reason':reason,'suggestions':accepted,'rejected':[r for r in results if not r['accepted']]}
 
 @app.get('/posts/{post_id}/images/{image_id}')
 def inspect_candidate(post_id: int,image_id: int):

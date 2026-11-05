@@ -23,3 +23,6 @@ def test_batch_match_reject_and_review(tmp_path, monkeypatch):
         assert 'mismatch' in results['rejected'][0]['reason']
         assert c.post(f'/posts/{post}/images/{wolf}/reviews',json={'decision':'approve'}).status_code==400
         assert c.post(f'/posts/{post}/images/{fox}/reviews',json={'decision':'approve'}).status_code==201
+        unmatched=c.post('/posts',json={'title':'An unfamiliar animal','content':'An otter in a river','expected_subject':'otter'}).json()['id']
+        response=c.get(f'/posts/{unmatched}/images').json()
+        assert response['status']=='no confident match' and response['reason']

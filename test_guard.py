@@ -1,4 +1,4 @@
-from guard import assess, cosine
+from guard import assess, cosine, infer_subject
 
 def test_reject_wolf_for_fox_even_at_high_similarity():
     result=assess("red fox", {"subject":"gray wolf", "category":"animal", "confidence":0.99}, 0.99)
@@ -16,3 +16,7 @@ def test_allow_valid():
 def test_cosine_zero_and_identical():
     assert cosine([0,0],[1,1])==0
     assert abs(cosine([1,2],[1,2])-1)<1e-9
+
+def test_ambiguous_article_subject_is_not_guessed():
+    assert infer_subject('Comparing a red fox and a gray wolf') is None
+    assert infer_subject('The red fox, Vulpes vulpes') == 'red fox'

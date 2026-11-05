@@ -6,6 +6,11 @@ def subject(text):
     text=re.sub(r"[^a-z ]", " ", text.lower())
     return next((v for k,v in ALIASES.items() if re.search(r"\b"+re.escape(k)+r"\b", text)), None)
 
+def infer_subject(text):
+    text=re.sub(r"[^a-z ]", " ", text.lower())
+    found={v for k,v in ALIASES.items() if re.search(r"\b"+re.escape(k)+r"\b", text)}
+    return next(iter(found)) if len(found)==1 else None
+
 def cosine(a,b):
     if len(a)!=len(b) or not a: return 0.0
     na=math.sqrt(sum(x*x for x in a)); nb=math.sqrt(sum(x*x for x in b))

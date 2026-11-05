@@ -10,7 +10,7 @@ class VisionMetadata(BaseModel):
 class PostIn(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1, max_length=10000)
-    expected_subject: str = Field(min_length=1, max_length=120)
+    expected_subject: str = Field(default='', max_length=120)
 
 class ImageIn(BaseModel):
     path: str = Field(min_length=1, max_length=1000)

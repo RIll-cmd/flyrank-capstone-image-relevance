@@ -1,11 +1,11 @@
 # Evidence and outstanding checks
 
-- Guard and API tests: `python -m pytest -q` -> 6 passed. The API test substitutes the vision and embedding providers; it exercises batch state, rejection of a wolf for a fox post, and review behavior.
+- Guard and API tests: `python -m pytest -q` -> 7 passed. The API test substitutes the vision and embedding providers; it exercises batch state, rejection of a wolf for a fox post, and review behavior.
 - Corpus download: 40 files across the search terms red fox, gray wolf, domestic dog and brown bear; `corpus.json` records source, license and creator metadata. A contact sheet was inspected, but search terms are not ground truth and individual licensing still needs review.
-- Live vision schema validation and low-confidence flag: not run; Ollama and vision model unavailable.
-- Live batch retries, progress and call costs: not run against a model.
-- Live image and post embeddings and semantic retrieval: not run.
-- Fox-first ranking, wolf rejection on live output, no-match response: not run end-to-end. The fox/wolf guard is covered by simulated tests only.
+- Live vision batch on 2026-11-05: Moondream processed 40/40 images, with 0 failed and 4 flagged for low confidence. Call records show model, duration, token counts when available, and $0 local API cost. Successful processing does not mean the classifications were all correct; individual source review is still required.
+- The live wolf candidate for the red-fox article was rejected: `Subject mismatch: expected red fox, detected wolf`. The same article returned no confident match because the model described the foxes too broadly as `fox`. Fox-first acceptance is not met.
+- The post and image embeddings were generated with `all-minilm` and stored; the ranked endpoint and no-match behavior were exercised against the real data.
 - Review endpoints: exercised with simulated embeddings and classification.
-- Top-1 precision on 10 labeled posts: not measured. Thresholds are untuned.
+- Top-1 precision on 10 manually labeled posts at similarity 0.72 and confidence 0.75: **2/10 (0.20)**, counting refusals as misses. Four red-fox cases were refused because the detected subjects were insufficiently specific. This is below the intended quality bar; thresholds are not validated for negative matches. Lowering the similarity threshold to 0.45 changed this same small set to 3/10 but increased accepted candidates without a negative-set safety evaluation, so it was not adopted.
+- A `qwen3-vl:2b-instruct` trial correctly identified two sampled red foxes after a prompt refinement, but one resized image took 85.5 seconds on this CPU. A complete second-model run was not finished and no Qwen precision score is claimed. The full Moondream database was restored; the partial Qwen database is retained locally for follow-up.
 - Public dedicated repository, commit history, license audit, and submission: outstanding.

@@ -4,6 +4,7 @@ import json
 import re
 import time
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 import requests
 from bs4 import BeautifulSoup
 
@@ -17,6 +18,20 @@ def clean(value): return BeautifulSoup(value or '', 'html.parser').get_text(' ',
 
 def main():
     OUT.mkdir(exist_ok=True)
+    saved=ROOT/'corpus.json'
+    if saved.exists():
+        manifest=json.loads(saved.read_text(encoding='utf8'))
+        for item in manifest:
+            dest=OUT/item['path']
+            if dest.exists(): continue
+            title=unquote(urlparse(item['source']).path.rsplit('/',1)[-1]).replace('_',' ')
+            response=requests.get(API,headers=HEADERS,timeout=30,params={'action':'query','titles':title,'prop':'imageinfo','iiprop':'url','iiurlwidth':640,'format':'json'})
+            response.raise_for_status()
+            pages=response.json()['query']['pages']
+            url=next(iter(pages.values()))['imageinfo'][0]['thumburl']
+            time.sleep(0.3); image=requests.get(url,headers=HEADERS,timeout=30); image.raise_for_status(); dest.write_bytes(image.content)
+        print('Restored',len(manifest),'manifest entries. Review each source license before use.')
+        return
     manifest=[]
     for term in TERMS:
         response=requests.get(API,headers=HEADERS,timeout=30,params={'action':'query','generator':'search','gsrsearch':term+' filetype:bitmap','gsrnamespace':6,'gsrlimit':40,'prop':'imageinfo','iiprop':'url|extmetadata','iiurlwidth':640,'format':'json'})
