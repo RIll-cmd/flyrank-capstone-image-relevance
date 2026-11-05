@@ -8,7 +8,7 @@ labels=json.loads((Path(__file__).parent/'evals'/'labels.json').read_text(encodi
 if len(labels)<10: raise SystemExit('At least 10 labeled posts are required')
 correct=0
 for case in labels:
-    response=requests.get(f"{base}/posts/{case['post_id']}/images",timeout=30); response.raise_for_status()
+    response=requests.get(f"{base}/posts/{case['post_id']}/images",headers={"X-API-Key":os.getenv("API_KEY","")},timeout=30); response.raise_for_status()
     suggestions=response.json()['suggestions']
     actual=suggestions[0]['image_id'] if suggestions else None
     ok=actual==case['expected_image_id']; correct+=ok

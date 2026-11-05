@@ -10,7 +10,7 @@ root=Path(__file__).parent
 corpus=json.loads((root/'corpus.json').read_text(encoding='utf8'))
 
 def post(path,data):
-    result=requests.post(base+path,json=data,timeout=70)
+    result=requests.post(base+path,json=data,headers={"X-API-Key":os.getenv("API_KEY","")},timeout=70)
     result.raise_for_status()
     return result.json()
 

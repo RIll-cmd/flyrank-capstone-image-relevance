@@ -20,6 +20,11 @@ def assess(expected, metadata, similarity, min_similarity=0.72, min_confidence=0
     wanted=subject(expected); observed=subject(metadata.get("subject", ""))
     if metadata.get("confidence",0)<min_confidence: return {"accepted":False,"reason":"Vision confidence below threshold"}
     if not wanted: return {"accepted":False,"reason":"Expected subject is outside the verified subject list"}
+    category=metadata.get('category','').lower()
+    if any(word in category for word in ('plant','vehicle','food','landscape','building')):
+        return {'accepted':False,'reason':'Category contradicts expected animal subject'}
+    if not re.search(r'\b(animal|animals|mammal|mammals|wildlife|canidae|ursidae|canine|carnivore|fauna|fox|wolf|dog|bear|deer)\b',category):
+        return {'accepted':False,'reason':'Animal category could not be verified'}
     if wanted and observed and wanted!=observed: return {"accepted":False,"reason":f"Subject mismatch: expected {wanted}, detected {observed}"}
     if wanted and not observed: return {"accepted":False,"reason":"Subject could not be verified"}
     if similarity<min_similarity: return {"accepted":False,"reason":"Semantic similarity below threshold"}

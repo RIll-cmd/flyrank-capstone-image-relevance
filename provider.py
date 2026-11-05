@@ -7,9 +7,10 @@ from pathlib import Path
 import requests
 from PIL import Image, ImageOps, ImageStat
 from models import VisionMetadata
-from store import call_log
+from store import call_log,reserve_call
 
 def invoke(path, payload, job_id, operation):
+    reserve_call()
     base = os.getenv('OLLAMA_URL', 'http://127.0.0.1:11434').rstrip('/')
     started = time.monotonic()
     result = {}

@@ -1,7 +1,7 @@
 # Evidence and outstanding checks
 
 - Guard, provider and API tests: `python -m pytest -q` -> 9 passed. The API test substitutes the vision and embedding providers; it exercises batch state, rejection of a wolf for a fox post, and review behavior.
-- Corpus download: 40 files across the search terms red fox, gray wolf, domestic dog and brown bear; `corpus.json` records source, license and creator metadata. A contact sheet was inspected, but search terms are not ground truth and individual licensing still needs review.
+- Corpus download: 40 files across the search terms red fox, gray wolf, domestic dog and brown bear; `corpus.json` records source, license and creator metadata. A contact sheet was inspected, but search terms are not ground truth and all 40 source license records were rechecked without changes; ATTRIBUTION.md preserves attribution.
 - Live vision batch on 2026-11-05: Moondream processed 40/40 images, with 0 failed and 4 flagged for low confidence. Call records show model, duration, token counts when available, and $0 local API cost. Successful processing does not mean the classifications were all correct; individual source review is still required.
 - A later Qwen/Nomic run processed all 40 corpus images with no processing failures. A separately generated blank fixture was flagged with confidence 0.0 and an image-quality warning. Processing records store model, token counts when available, duration, and zero local API fees.
 - Live probes: `The behavior of red foxes` returned a `Red fox` suggestion; forcing image 11, a wolf, produced `Subject mismatch: expected red fox, detected wolf`. An otter article returned `no confident match`; a `Vulpes vulpes` article returned a red-fox suggestion.
@@ -11,4 +11,10 @@
 - Benchmark audit: the gold image for “A fox at rest” (corpus index 3) actually shows a fox leaping after prey; the original article description is wrong. A larger Qwen model described the action correctly. The original labels and 7/10 result are retained here, but that case is not a valid test of matching a resting fox. Other close-up fox images can also plausibly match the broad portrait descriptions, so exact single-image scoring needs a reviewed set with unambiguous labels or multiple acceptable matches before it can support a trustworthy 10/10 claim.
 - Reviewed relevance check on the same corpus: `python evaluate_reviewed.py` returned **10/10** on 2026-11-05. It changes the incorrect resting-fox article to a leaping-fox description and accepts the independently visually checked young-fox portrait as an additional valid image in two portrait cases. The original exact-label script still returns 7/10. The annotation review and a close-view ranking bonus were developed after the original results were observed; this is therefore an in-sample result, not an independent estimate of accuracy.
 - Tests after the ranking change: `python -m pytest -q` -> 11 passed. The close-view bonus affects ordering only; threshold and mismatch rejection use raw cosine similarity.
-- The dedicated repository began locally rather than publicly from day one. Individual license review and submission remain outstanding.
+- The dedicated repository began locally rather than publicly from day one. Public-from-day-one history cannot be reconstructed; submission remains a user action.
+
+## Safeguard verification after submission audit
+
+python -m pytest -q: 17 passed. Tests cover migration startup, bounded call reservation, separate tenant keys, conflicting category rejection, repeated registrations, and failure alerts. The budget test allows one reservation and rejects the second. The tenant test verifies a post created with one key is invisible to another. Failure injection produces a failed job and persisted alert.
+
+Existing corpus evaluations remain 7/10 strict original labels and 10/10 reviewed relevance, both explicitly in-sample. Live Supabase authentication is verified in the separate auth assignment; this capstone uses optional per-tenant API keys.
