@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from guard import assess, cosine, infer_subject
 from models import ImageIn, PostIn, ReviewIn
 from provider import embed, vision
+from ranking import composition_bonus
 from store import connect, initialize
 
 load_dotenv()
@@ -107,12 +108,13 @@ def ranking(post_id):
     for row in rows:
         meta=json.loads(row['metadata']); similarity=cosine(json.loads(post['embedding']),json.loads(row['embedding']))
         result=assess(post['expected_subject'],meta,similarity,float(os.getenv('SIMILARITY_THRESHOLD','0.72')),float(os.getenv('CONFIDENCE_THRESHOLD','0.75')))
-        candidates.append({'image_id':row['id'],'metadata':meta,'similarity':round(similarity,4),**result})
+        bonus=composition_bonus(post['title']+' '+post['content'],meta['caption'])
+        candidates.append({'image_id':row['id'],'metadata':meta,'similarity':round(similarity,4),'rank_score':round(similarity+bonus,4),**result})
     with connect() as db:
         db.executemany('''INSERT INTO suggestions(post_id,image_id,similarity,accepted,reason) VALUES(?,?,?,?,?)
             ON CONFLICT(post_id,image_id) DO UPDATE SET similarity=excluded.similarity,accepted=excluded.accepted,reason=excluded.reason,updated_at=CURRENT_TIMESTAMP''',
             [(post_id,c['image_id'],c['similarity'],int(c['accepted']),c['reason']) for c in candidates])
-    return sorted(candidates,key=lambda c:c['similarity'],reverse=True)
+    return sorted(candidates,key=lambda c:c['rank_score'],reverse=True)
 
 @app.get('/posts/{post_id}/images')
 def suggest(post_id: int):
